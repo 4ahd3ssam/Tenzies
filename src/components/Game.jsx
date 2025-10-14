@@ -1,19 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import Die from "./Die";
 import { nanoid } from "nanoid";
+import Confetti from "react-confetti";
+import { useWindowSize } from "react-use";
 
 export default function Game() {
-  const [dice, setDice] = useState(generateAllNewDice());
+  const [dice, setDice] = useState(() => generateAllNewDice());
   const [isOver, setIsOver] = useState(false);
-
+  const { width, height } = useWindowSize();
   const isEndGame = useCallback(() => {
-    if (dice[0].isHeld === false) return false;
-    let value = dice[0].value;
-    for (let index = 0; index < dice.length; index++) {
-      if (dice[index].isHeld === false) return false;
-      if (dice[index].value !== value) return false;
-    }
-    return true;
+    return (
+      dice.every((die) => die.isHeld) &&
+      dice.every((die) => die.value === dice[0].value)
+    );
   }, [dice]);
 
   useEffect(() => {
@@ -26,7 +25,7 @@ export default function Game() {
     return Math.ceil(Math.random() * 6);
   }
 
-  function generateAllNewDice () {
+  function generateAllNewDice() {
     return new Array(10).fill(0).map(() => ({
       id: nanoid(),
       value: getRandomNumber(),
@@ -58,6 +57,7 @@ export default function Game() {
   return (
     <div className="bg-gray-100 rounded-md p-5 flex justify-center items-center h-full">
       <div>
+        {isOver && <Confetti width={width} height={height} />}
         <header className="text-center text-gray-950">
           <h2 className="text-[30px] font-bold">Tenzies</h2>
           <p className="text-[16px] mt-3">
@@ -81,9 +81,8 @@ export default function Game() {
             if (isOver) {
               setDice(generateAllNewDice);
               setIsOver(false);
-            }
-            else {
-                rollDice()
+            } else {
+              rollDice();
             }
           }}
           className="block rounded-md px-10 py-2 bg-amber-400 text-black text-[18px] font-medium mx-auto mt-10 hover:cursor-pointer"
